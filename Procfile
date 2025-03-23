@@ -1,1 +1,1 @@
-web: gunicorn backend.dashboard.main:app -k uvicorn.workers.UvicornWorker -b 0.0.0.0:$PORT 
+web: PYTHONPATH=$PYTHONPATH:. gunicorn backend.dashboard.main:app -k uvicorn.workers.UvicornWorker -b 0.0.0.0:$PORT 
