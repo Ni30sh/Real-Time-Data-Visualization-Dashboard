@@ -11,8 +11,40 @@
   ],
   "routes": [
     {
+      "src": "/assets/(.*)",
+      "headers": {
+        "cache-control": "public, max-age=31536000, immutable"
+      },
+      "continue": true
+    },
+    {
+      "src": "/favicon.ico",
+      "headers": {
+        "cache-control": "public, max-age=31536000"
+      },
+      "continue": true
+    },
+    {
+      "src": "/site.webmanifest",
+      "headers": {
+        "content-type": "application/manifest+json"
+      },
+      "continue": true
+    },
+    {
       "src": "/(.*)",
       "dest": "/index.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        }
+      ]
     }
   ]
 } 
