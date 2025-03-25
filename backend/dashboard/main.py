@@ -19,14 +19,9 @@ app = FastAPI(title="Real-Time Dashboard API")
 # Configure CORS with specific origins
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "http://localhost:3000",
-        "https://real-time-data-visualization-dashboard.vercel.app",
-        "https://*.vercel.app"
-    ],
+    allow_origins=["*"],  # Allow all origins in development
     allow_credentials=True,
-    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_methods=["*"],
     allow_headers=["*"],
     expose_headers=["*"]
 )
@@ -96,7 +91,7 @@ async def get_data():
         return JSONResponse(
             content={"data": records},
             headers={
-                "Access-Control-Allow-Origin": "https://real-time-data-visualization-dashboard.vercel.app",
+                "Access-Control-Allow-Origin": "*",
                 "Access-Control-Allow-Methods": "GET, OPTIONS",
                 "Access-Control-Allow-Headers": "*",
                 "Access-Control-Allow-Credentials": "true"
@@ -109,7 +104,7 @@ async def get_data():
             status_code=503,
             content={"error": "Failed to fetch data from Google Sheets", "details": str(e)},
             headers={
-                "Access-Control-Allow-Origin": "https://real-time-data-visualization-dashboard.vercel.app",
+                "Access-Control-Allow-Origin": "*",
                 "Access-Control-Allow-Methods": "GET, OPTIONS",
                 "Access-Control-Allow-Headers": "*",
                 "Access-Control-Allow-Credentials": "true"
@@ -121,7 +116,7 @@ async def get_data():
             status_code=500,
             content={"error": "Internal server error", "details": str(e)},
             headers={
-                "Access-Control-Allow-Origin": "https://real-time-data-visualization-dashboard.vercel.app",
+                "Access-Control-Allow-Origin": "*",
                 "Access-Control-Allow-Methods": "GET, OPTIONS",
                 "Access-Control-Allow-Headers": "*",
                 "Access-Control-Allow-Credentials": "true"

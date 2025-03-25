@@ -62,7 +62,7 @@ function App() {
           'Accept': 'application/json',
           'Content-Type': 'application/json'
         },
-        withCredentials: true
+        withCredentials: false // Changed to false since we're using wildcard CORS
       });
       
       // Check if response.data has a data property
