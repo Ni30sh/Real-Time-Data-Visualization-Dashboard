@@ -1,11 +1,15 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 import pandas as pd
 import requests
 import json
 from typing import Dict, List
 import os
 from dotenv import load_dotenv
+import io
+from datetime import datetime
+import pytz
 
 # Load environment variables
 load_dotenv()
@@ -15,12 +19,7 @@ app = FastAPI(title="Real-Time Dashboard API")
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",  # Local development
-        "https://*.vercel.app",   # Vercel preview deployments
-        "https://real-time-data-visualization-dashboard.vercel.app",  # Production frontend
-        "https://data-visualization-dashboard-9g3b.onrender.com"  # Backend URL
-    ],
+    allow_origins=["*"],  # Allow all origins in development
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
