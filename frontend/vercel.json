@@ -12,21 +12,15 @@
   "rewrites": [
     {
       "source": "/assets/:path*",
-      "headers": {
-        "cache-control": "public, max-age=31536000, immutable"
-      }
+      "destination": "/assets/:path*"
     },
     {
       "source": "/favicon.ico",
-      "headers": {
-        "cache-control": "public, max-age=31536000"
-      }
+      "destination": "/favicon.ico"
     },
     {
       "source": "/site.webmanifest",
-      "headers": {
-        "content-type": "application/manifest+json"
-      }
+      "destination": "/site.webmanifest"
     },
     {
       "source": "/(.*)",
@@ -34,6 +28,33 @@
     }
   ],
   "headers": [
+    {
+      "source": "/assets/(.*)",
+      "headers": [
+        {
+          "key": "cache-control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/favicon.ico",
+      "headers": [
+        {
+          "key": "cache-control",
+          "value": "public, max-age=31536000"
+        }
+      ]
+    },
+    {
+      "source": "/site.webmanifest",
+      "headers": [
+        {
+          "key": "content-type",
+          "value": "application/manifest+json"
+        }
+      ]
+    },
     {
       "source": "/(.*)",
       "headers": [
