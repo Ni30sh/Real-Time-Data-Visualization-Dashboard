@@ -56,10 +56,49 @@ async def root():
 @app.get("/data")
 async def get_data():
     try:
-        df = get_sheet_data()
-        return {"data": df.to_dict(orient='records')}
+        # Get the spreadsheet ID and range from environment variables
+        spreadsheet_id = os.getenv("SPREADSHEET_ID")
+        range_name = os.getenv("RANGE_NAME")
+        
+        if not spreadsheet_id or not range_name:
+            raise HTTPException(status_code=500, detail="Missing spreadsheet configuration")
+        
+        # Construct the CSV export URL
+        url = f"https://docs.google.com/spreadsheets/d/{spreadsheet_id}/export?format=csv&range={range_name}"
+        
+        # Add headers to mimic a browser request
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        }
+        
+        # Fetch data with timeout and headers
+        response = requests.get(url, headers=headers, timeout=10)
+        response.raise_for_status()  # Raise an exception for bad status codes
+        
+        # Read CSV data
+        df = pd.read_csv(io.StringIO(response.text))
+        
+        # Convert timestamp to ISO format
+        df['timestamp'] = pd.to_datetime(df['timestamp'])
+        df['timestamp'] = df['timestamp'].dt.strftime('%Y-%m-%dT%H:%M:%S.%fZ')
+        
+        # Convert DataFrame to records
+        records = df.to_dict('records')
+        
+        return JSONResponse(content=records)
+        
+    except requests.exceptions.RequestException as e:
+        print(f"Network error: {str(e)}")
+        return JSONResponse(
+            status_code=503,
+            content={"error": "Failed to fetch data from Google Sheets", "details": str(e)}
+        )
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
+        print(f"Error processing data: {str(e)}")
+        return JSONResponse(
+            status_code=500,
+            content={"error": "Internal server error", "details": str(e)}
+        )
 
 @app.get("/health")
 async def health_check():

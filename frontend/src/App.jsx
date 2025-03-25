@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import Box from '@mui/material/Box';
@@ -20,6 +20,7 @@ import {
   Legend,
   ResponsiveContainer
 } from 'recharts';
+import './App.css';
 
 // Create a theme instance
 const theme = createTheme({
@@ -45,19 +46,37 @@ function App() {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [retryCount, setRetryCount] = useState(0);
+  const maxRetries = 3;
 
   const fetchData = async () => {
     try {
       setLoading(true);
-      console.log('Fetching data from:', `${API_URL}/data`); // Debug log
-      const response = await axios.get(`${API_URL}/data`);
-      console.log('Response received:', response.data); // Debug log
-      setData(response.data.data);
       setError(null);
-    } catch (err) {
-      console.error('Error fetching data:', err); // Debug log
-      setError(err.message);
-      setData([]);
+      
+      console.log('Fetching data from:', `${API_URL}/data`);
+      
+      const response = await axios.get(`${API_URL}/data`, {
+        timeout: 10000,
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      setData(response.data.data);
+      setRetryCount(0); // Reset retry count on success
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      setError(error.message || 'Failed to fetch data');
+      
+      // Implement retry logic
+      if (retryCount < maxRetries) {
+        console.log(`Retrying... Attempt ${retryCount + 1} of ${maxRetries}`);
+        setTimeout(() => {
+          setRetryCount(prev => prev + 1);
+        }, 2000 * (retryCount + 1)); // Exponential backoff
+      }
     } finally {
       setLoading(false);
     }
@@ -65,27 +84,9 @@ function App() {
 
   useEffect(() => {
     fetchData();
-    const interval = setInterval(fetchData, 30000); // Refresh every 30 seconds
+    const interval = setInterval(fetchData, 30000); // Poll every 30 seconds
     return () => clearInterval(interval);
-  }, []);
-
-  if (error) {
-    return (
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-          <Paper sx={{ p: 2, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <Typography color="error" variant="h6">
-              Error: {error}
-            </Typography>
-            <IconButton onClick={fetchData} sx={{ mt: 2 }}>
-              <RefreshIcon />
-            </IconButton>
-          </Paper>
-        </Container>
-      </ThemeProvider>
-    );
-  }
+  }, [retryCount]); // Add retryCount as dependency
 
   if (loading) {
     return (
@@ -99,6 +100,31 @@ function App() {
         >
           <CircularProgress />
         </Box>
+      </ThemeProvider>
+    );
+  }
+
+  if (error) {
+    return (
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+          <Paper sx={{ p: 2, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <Typography color="error" variant="h6">
+              Error: {error}
+            </Typography>
+            {retryCount < maxRetries ? (
+              <p>Retrying in {2 * (retryCount + 1)} seconds...</p>
+            ) : (
+              <button onClick={() => {
+                setRetryCount(0);
+                fetchData();
+              }}>
+                Retry Now
+              </button>
+            )}
+          </Paper>
+        </Container>
       </ThemeProvider>
     );
   }
