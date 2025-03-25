@@ -26,11 +26,15 @@ export default defineConfig({
     'process.env': {}
   },
   optimizeDeps: {
-    include: ['react', 'react-dom', '@mui/material', '@emotion/react', '@emotion/styled', 'recharts']
+    include: ['react', 'react-dom', '@mui/material', '@emotion/react', '@emotion/styled', 'recharts', 'axios']
   },
   resolve: {
     alias: {
       '@': '/src'
     }
+  },
+  preview: {
+    port: 3000,
+    strictPort: true,
   }
 })
