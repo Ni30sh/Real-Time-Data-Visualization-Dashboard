@@ -61,14 +61,21 @@ function App() {
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json'
-        }
+        },
+        withCredentials: true
       });
       
-      setData(response.data.data);
+      // Check if response.data has a data property
+      if (response.data && response.data.data) {
+        setData(response.data.data);
+      } else {
+        setData(response.data);
+      }
+      
       setRetryCount(0); // Reset retry count on success
     } catch (error) {
       console.error('Error fetching data:', error);
-      setError(error.message || 'Failed to fetch data');
+      setError(error.response?.data?.error || error.message || 'Failed to fetch data');
       
       // Implement retry logic
       if (retryCount < maxRetries) {

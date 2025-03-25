@@ -16,13 +16,19 @@ load_dotenv()
 
 app = FastAPI(title="Real-Time Dashboard API")
 
-# Configure CORS
+# Configure CORS with specific origins
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allow all origins in development
+    allow_origins=[
+        "http://localhost:5173",
+        "http://localhost:3000",
+        "https://real-time-data-visualization-dashboard.vercel.app",
+        "https://*.vercel.app"
+    ],
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["*"],
+    expose_headers=["*"]
 )
 
 # Google Sheets setup
@@ -68,12 +74,14 @@ async def get_data():
         
         # Add headers to mimic a browser request
         headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+            'Accept': 'text/csv,application/json',
+            'Content-Type': 'application/json'
         }
         
         # Fetch data with timeout and headers
         response = requests.get(url, headers=headers, timeout=10)
-        response.raise_for_status()  # Raise an exception for bad status codes
+        response.raise_for_status()
         
         # Read CSV data
         df = pd.read_csv(io.StringIO(response.text))
@@ -85,19 +93,39 @@ async def get_data():
         # Convert DataFrame to records
         records = df.to_dict('records')
         
-        return JSONResponse(content=records)
+        return JSONResponse(
+            content={"data": records},
+            headers={
+                "Access-Control-Allow-Origin": "https://real-time-data-visualization-dashboard.vercel.app",
+                "Access-Control-Allow-Methods": "GET, OPTIONS",
+                "Access-Control-Allow-Headers": "*",
+                "Access-Control-Allow-Credentials": "true"
+            }
+        )
         
     except requests.exceptions.RequestException as e:
         print(f"Network error: {str(e)}")
         return JSONResponse(
             status_code=503,
-            content={"error": "Failed to fetch data from Google Sheets", "details": str(e)}
+            content={"error": "Failed to fetch data from Google Sheets", "details": str(e)},
+            headers={
+                "Access-Control-Allow-Origin": "https://real-time-data-visualization-dashboard.vercel.app",
+                "Access-Control-Allow-Methods": "GET, OPTIONS",
+                "Access-Control-Allow-Headers": "*",
+                "Access-Control-Allow-Credentials": "true"
+            }
         )
     except Exception as e:
         print(f"Error processing data: {str(e)}")
         return JSONResponse(
             status_code=500,
-            content={"error": "Internal server error", "details": str(e)}
+            content={"error": "Internal server error", "details": str(e)},
+            headers={
+                "Access-Control-Allow-Origin": "https://real-time-data-visualization-dashboard.vercel.app",
+                "Access-Control-Allow-Methods": "GET, OPTIONS",
+                "Access-Control-Allow-Headers": "*",
+                "Access-Control-Allow-Credentials": "true"
+            }
         )
 
 @app.get("/health")
