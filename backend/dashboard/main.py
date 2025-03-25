@@ -18,8 +18,8 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:5173",  # Local development
         "https://*.vercel.app",   # Vercel preview deployments
-        "https://real-time-dashboard-frontend.vercel.app",  # Production frontend
-        "https://real-time-dashboard.vercel.app"  # Alternative production frontend
+        "https://real-time-data-visualization-dashboard.vercel.app",  # Production frontend
+        "https://data-visualization-dashboard-9g3b.onrender.com"  # Backend URL
     ],
     allow_credentials=True,
     allow_methods=["*"],
