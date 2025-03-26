@@ -20,7 +20,7 @@ app = FastAPI(title="Real-Time Dashboard API")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # Allow all origins in development
-    allow_credentials=True,
+    allow_credentials=False,  # Changed to False since we're using wildcard origin
     allow_methods=["*"],
     allow_headers=["*"],
     expose_headers=["*"]
@@ -94,7 +94,7 @@ async def get_data():
                 "Access-Control-Allow-Origin": "*",
                 "Access-Control-Allow-Methods": "GET, OPTIONS",
                 "Access-Control-Allow-Headers": "*",
-                "Access-Control-Allow-Credentials": "true"
+                "Access-Control-Allow-Credentials": "false"
             }
         )
         
@@ -107,7 +107,7 @@ async def get_data():
                 "Access-Control-Allow-Origin": "*",
                 "Access-Control-Allow-Methods": "GET, OPTIONS",
                 "Access-Control-Allow-Headers": "*",
-                "Access-Control-Allow-Credentials": "true"
+                "Access-Control-Allow-Credentials": "false"
             }
         )
     except Exception as e:
@@ -119,7 +119,7 @@ async def get_data():
                 "Access-Control-Allow-Origin": "*",
                 "Access-Control-Allow-Methods": "GET, OPTIONS",
                 "Access-Control-Allow-Headers": "*",
-                "Access-Control-Allow-Credentials": "true"
+                "Access-Control-Allow-Credentials": "false"
             }
         )
 
