@@ -62,8 +62,7 @@ function App() {
           'Accept': 'application/json',
           'Content-Type': 'application/json'
         },
-        withCredentials: false,
-        mode: 'cors'
+        withCredentials: true
       });
       
       // Check if response.data has a data property
