@@ -19,11 +19,10 @@ app = FastAPI(title="Real-Time Dashboard API")
 # Configure CORS to allow all origins
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allow all origins
-    allow_credentials=False,  # Must be False when allow_origins=["*"]
-    allow_methods=["*"],  # Allow all methods
+    allow_origins=["*"],  # Allow all domains
+    allow_credentials=True,
+    allow_methods=["*"],  # Allow all methods (GET, POST, etc.)
     allow_headers=["*"],  # Allow all headers
-    expose_headers=["*"]  # Expose all headers
 )
 
 # Google Sheets setup
