@@ -62,7 +62,7 @@ function App() {
           'Accept': 'application/json',
           'Content-Type': 'application/json'
         },
-        withCredentials: true
+        withCredentials: false
       });
       
       // Check if response.data has a data property

@@ -16,14 +16,14 @@ load_dotenv()
 
 app = FastAPI(title="Real-Time Dashboard API")
 
-# Configure CORS with specific origins
+# Configure CORS to allow all origins
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://real-time-data-visualization-dashboard.vercel.app"],
-    allow_credentials=True,
-    allow_methods=["GET", "OPTIONS"],
-    allow_headers=["*"],
-    expose_headers=["*"]
+    allow_origins=["*"],  # Allow all origins
+    allow_credentials=False,  # Must be False when allow_origins=["*"]
+    allow_methods=["*"],  # Allow all methods
+    allow_headers=["*"],  # Allow all headers
+    expose_headers=["*"]  # Expose all headers
 )
 
 # Google Sheets setup
@@ -88,39 +88,19 @@ async def get_data():
         # Convert DataFrame to records
         records = df.to_dict('records')
         
-        return JSONResponse(
-            content={"data": records},
-            headers={
-                "Access-Control-Allow-Origin": "https://real-time-data-visualization-dashboard.vercel.app",
-                "Access-Control-Allow-Methods": "GET, OPTIONS",
-                "Access-Control-Allow-Headers": "*",
-                "Access-Control-Allow-Credentials": "true"
-            }
-        )
+        return {"data": records}
         
     except requests.exceptions.RequestException as e:
         print(f"Network error: {str(e)}")
         return JSONResponse(
             status_code=503,
-            content={"error": "Failed to fetch data from Google Sheets", "details": str(e)},
-            headers={
-                "Access-Control-Allow-Origin": "https://real-time-data-visualization-dashboard.vercel.app",
-                "Access-Control-Allow-Methods": "GET, OPTIONS",
-                "Access-Control-Allow-Headers": "*",
-                "Access-Control-Allow-Credentials": "true"
-            }
+            content={"error": "Failed to fetch data from Google Sheets", "details": str(e)}
         )
     except Exception as e:
         print(f"Error processing data: {str(e)}")
         return JSONResponse(
             status_code=500,
-            content={"error": "Internal server error", "details": str(e)},
-            headers={
-                "Access-Control-Allow-Origin": "https://real-time-data-visualization-dashboard.vercel.app",
-                "Access-Control-Allow-Methods": "GET, OPTIONS",
-                "Access-Control-Allow-Headers": "*",
-                "Access-Control-Allow-Credentials": "true"
-            }
+            content={"error": "Internal server error", "details": str(e)}
         )
 
 @app.get("/health")
