@@ -16,14 +16,19 @@ load_dotenv()
 
 app = FastAPI(title="Real-Time Dashboard API")
 
-# Configure CORS to allow all origins
+# Configure CORS with specific origins
+origins = [
+    "https://real-time-data-visualization-dashboard.vercel.app",
+    "http://localhost:3000",  # For local development
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allow all origins
-    allow_credentials=False,  # Must be False when allow_origins=["*"]
-    allow_methods=["*"],  # Allow all methods
-    allow_headers=["*"],  # Allow all headers
-    expose_headers=["*"]  # Expose all headers
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+    expose_headers=["*"]
 )
 
 # Google Sheets setup
@@ -83,50 +88,54 @@ async def get_data():
         response = requests.get(url, headers=headers, timeout=10)
         response.raise_for_status()
         
+        # Print response content for debugging
+        print(f"Response content type: {response.headers.get('content-type')}")
+        print(f"Response status code: {response.status_code}")
+        
         # Read CSV data
         df = pd.read_csv(io.StringIO(response.text))
         
-        # Convert timestamp to ISO format
-        df['timestamp'] = pd.to_datetime(df['timestamp'])
-        df['timestamp'] = df['timestamp'].dt.strftime('%Y-%m-%dT%H:%M:%S.%fZ')
+        # Print DataFrame info for debugging
+        print(f"DataFrame columns: {df.columns.tolist()}")
+        print(f"DataFrame shape: {df.shape}")
+        
+        # Convert timestamp to ISO format if it exists
+        if 'timestamp' in df.columns:
+            df['timestamp'] = pd.to_datetime(df['timestamp'])
+            df['timestamp'] = df['timestamp'].dt.strftime('%Y-%m-%dT%H:%M:%S.%fZ')
+        elif 'Date' in df.columns and 'Time' in df.columns:
+            df['timestamp'] = pd.to_datetime(df['Date'] + ' ' + df['Time'])
+            df['timestamp'] = df['timestamp'].dt.strftime('%Y-%m-%dT%H:%M:%S.%fZ')
         
         # Convert DataFrame to records
         records = df.to_dict('records')
         
-        return JSONResponse(
-            content={"data": records},
-            headers={
-                "Access-Control-Allow-Origin": "*",
-                "Access-Control-Allow-Methods": "GET, OPTIONS",
-                "Access-Control-Allow-Headers": "*",
-                "Access-Control-Allow-Credentials": "false"
-            }
-        )
+        # Print first record for debugging
+        if records:
+            print(f"First record: {records[0]}")
+        
+        return {
+            "status": "success",
+            "data": records,
+            "timestamp": datetime.now(pytz.UTC).isoformat()
+        }
         
     except requests.exceptions.RequestException as e:
         print(f"Network error: {str(e)}")
-        return JSONResponse(
-            status_code=503,
-            content={"error": "Failed to fetch data from Google Sheets", "details": str(e)},
-            headers={
-                "Access-Control-Allow-Origin": "*",
-                "Access-Control-Allow-Methods": "GET, OPTIONS",
-                "Access-Control-Allow-Headers": "*",
-                "Access-Control-Allow-Credentials": "false"
-            }
-        )
+        return {
+            "status": "error",
+            "message": "Failed to fetch data from Google Sheets",
+            "details": str(e),
+            "timestamp": datetime.now(pytz.UTC).isoformat()
+        }
     except Exception as e:
         print(f"Error processing data: {str(e)}")
-        return JSONResponse(
-            status_code=500,
-            content={"error": "Internal server error", "details": str(e)},
-            headers={
-                "Access-Control-Allow-Origin": "*",
-                "Access-Control-Allow-Methods": "GET, OPTIONS",
-                "Access-Control-Allow-Headers": "*",
-                "Access-Control-Allow-Credentials": "false"
-            }
-        )
+        return {
+            "status": "error",
+            "message": "Internal server error",
+            "details": str(e),
+            "timestamp": datetime.now(pytz.UTC).isoformat()
+        }
 
 @app.get("/health")
 async def health_check():

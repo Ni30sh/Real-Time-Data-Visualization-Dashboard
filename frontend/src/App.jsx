@@ -48,7 +48,7 @@ function App() {
     try {
       setLoading(true);
       setError(null);
-      
+        
       console.log('Fetching data from:', `${API_URL}/data`);
       
       const response = await axios.get(`${API_URL}/data`, {

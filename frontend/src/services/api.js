@@ -16,7 +16,14 @@ const fetchWithRetry = async (url, options = {}, retryCount = 0) => {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
 
-        return await response.json();
+        const data = await response.json();
+        
+        // Check if the response has an error status
+        if (data.status === 'error') {
+            throw new Error(data.message || 'An error occurred');
+        }
+
+        return data;
     } catch (error) {
         if (retryCount < config.retryAttempts) {
             console.log(`Retry attempt ${retryCount + 1} of ${config.retryAttempts}`);
@@ -33,6 +40,6 @@ export const fetchDashboardData = async () => {
         return response.data;
     } catch (error) {
         console.error('Error fetching dashboard data:', error);
-        throw new Error('Failed to fetch dashboard data. Please try again later.');
+        throw new Error(error.message || 'Failed to fetch dashboard data. Please try again later.');
     }
 }; 
