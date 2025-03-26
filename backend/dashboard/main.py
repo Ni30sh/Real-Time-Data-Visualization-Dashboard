@@ -19,7 +19,7 @@ app = FastAPI(title="Real-Time Dashboard API")
 # Configure CORS with specific origins
 origins = [
     "https://real-time-data-visualization-dashboard.vercel.app",
-    "http://localhost:3000",  # For local development
+    "http://localhost:3000"  # For local development
 ]
 
 app.add_middleware(
