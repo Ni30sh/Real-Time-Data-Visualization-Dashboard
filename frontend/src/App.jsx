@@ -35,19 +35,14 @@ const theme = createTheme({
   },
 });
 
-// Get the appropriate API URL based on environment
-const API_URL = import.meta.env.PROD 
-  ? import.meta.env.VITE_PRODUCTION_API_URL 
-  : import.meta.env.VITE_API_URL;
-
-console.log('API URL:', API_URL); // Debug log
-
 function App() {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [retryCount, setRetryCount] = useState(0);
   const maxRetries = 3;
+
+  const API_URL = import.meta.env.VITE_PRODUCTION_API_URL || import.meta.env.VITE_API_URL;
 
   const fetchData = async () => {
     try {
@@ -62,17 +57,23 @@ function App() {
           'Accept': 'application/json',
           'Content-Type': 'application/json'
         },
-        withCredentials: false
+        withCredentials: false,
+        validateStatus: function (status) {
+          return status >= 200 && status < 500; // Accept all status codes less than 500
+        }
       });
       
-      // Check if response.data has a data property
-      if (response.data && response.data.data) {
-        setData(response.data.data);
+      if (response.status === 200) {
+        // Check if response.data has a data property
+        if (response.data && response.data.data) {
+          setData(response.data.data);
+        } else {
+          setData(response.data);
+        }
+        setRetryCount(0); // Reset retry count on success
       } else {
-        setData(response.data);
+        throw new Error(`Server returned status ${response.status}`);
       }
-      
-      setRetryCount(0); // Reset retry count on success
     } catch (error) {
       console.error('Error fetching data:', error);
       setError(error.response?.data?.error || error.message || 'Failed to fetch data');

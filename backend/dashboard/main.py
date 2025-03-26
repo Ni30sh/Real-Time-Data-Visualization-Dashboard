@@ -19,10 +19,11 @@ app = FastAPI(title="Real-Time Dashboard API")
 # Configure CORS to allow all origins
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allow all domains
-    allow_credentials=True,
-    allow_methods=["*"],  # Allow all methods (GET, POST, etc.)
+    allow_origins=["*"],  # Allow all origins
+    allow_credentials=False,  # Must be False when allow_origins=["*"]
+    allow_methods=["*"],  # Allow all methods
     allow_headers=["*"],  # Allow all headers
+    expose_headers=["*"]  # Expose all headers
 )
 
 # Google Sheets setup
@@ -61,10 +62,15 @@ async def get_data():
         range_name = os.getenv("RANGE_NAME")
         
         if not spreadsheet_id or not range_name:
+            print("Missing environment variables:", {
+                "SPREADSHEET_ID": bool(spreadsheet_id),
+                "RANGE_NAME": bool(range_name)
+            })
             raise HTTPException(status_code=500, detail="Missing spreadsheet configuration")
         
         # Construct the CSV export URL
         url = f"https://docs.google.com/spreadsheets/d/{spreadsheet_id}/export?format=csv&range={range_name}"
+        print(f"Fetching data from URL: {url}")
         
         # Add headers to mimic a browser request
         headers = {
