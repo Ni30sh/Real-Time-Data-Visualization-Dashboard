@@ -93,19 +93,39 @@ async def get_data():
         # Convert DataFrame to records
         records = df.to_dict('records')
         
-        return {"data": records}
+        return JSONResponse(
+            content={"data": records},
+            headers={
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods": "GET, OPTIONS",
+                "Access-Control-Allow-Headers": "*",
+                "Access-Control-Allow-Credentials": "false"
+            }
+        )
         
     except requests.exceptions.RequestException as e:
         print(f"Network error: {str(e)}")
         return JSONResponse(
             status_code=503,
-            content={"error": "Failed to fetch data from Google Sheets", "details": str(e)}
+            content={"error": "Failed to fetch data from Google Sheets", "details": str(e)},
+            headers={
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods": "GET, OPTIONS",
+                "Access-Control-Allow-Headers": "*",
+                "Access-Control-Allow-Credentials": "false"
+            }
         )
     except Exception as e:
         print(f"Error processing data: {str(e)}")
         return JSONResponse(
             status_code=500,
-            content={"error": "Internal server error", "details": str(e)}
+            content={"error": "Internal server error", "details": str(e)},
+            headers={
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods": "GET, OPTIONS",
+                "Access-Control-Allow-Headers": "*",
+                "Access-Control-Allow-Credentials": "false"
+            }
         )
 
 @app.get("/health")
