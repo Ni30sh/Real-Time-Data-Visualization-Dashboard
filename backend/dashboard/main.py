@@ -18,21 +18,18 @@ app = FastAPI(title="Real-Time Dashboard API")
 
 # Configure CORS with specific origins
 origins = [
-    "https://real-time-data-visualization-dashboard.vercel.app",
-    "https://real-time-data-visualization-dashboard-seven.vercel.app",  # Add this
-    "http://localhost:3000"  # For local development
+    "https://real-time-data-visualization-dashboard-seven.vercel.app",
+    "http://localhost:3000",  # For local development
 ]
-
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allow all origins
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
     expose_headers=["*"]
 )
-
 
 # Google Sheets setup
 SPREADSHEET_ID = os.getenv('SPREADSHEET_ID')
@@ -91,16 +88,8 @@ async def get_data():
         response = requests.get(url, headers=headers, timeout=10)
         response.raise_for_status()
         
-        # Print response content for debugging
-        print(f"Response content type: {response.headers.get('content-type')}")
-        print(f"Response status code: {response.status_code}")
-        
         # Read CSV data
         df = pd.read_csv(io.StringIO(response.text))
-        
-        # Print DataFrame info for debugging
-        print(f"DataFrame columns: {df.columns.tolist()}")
-        print(f"DataFrame shape: {df.shape}")
         
         # Convert timestamp to ISO format if it exists
         if 'timestamp' in df.columns:
@@ -113,36 +102,66 @@ async def get_data():
         # Convert DataFrame to records
         records = df.to_dict('records')
         
-        # Print first record for debugging
-        if records:
-            print(f"First record: {records[0]}")
-        
-        return {
-            "status": "success",
-            "data": records,
-            "timestamp": datetime.now(pytz.UTC).isoformat()
-        }
+        return JSONResponse(
+            content={
+                "status": "success",
+                "data": records,
+                "timestamp": datetime.now(pytz.UTC).isoformat()
+            },
+            headers={
+                "Access-Control-Allow-Origin": "https://real-time-data-visualization-dashboard-seven.vercel.app",
+                "Access-Control-Allow-Methods": "GET, OPTIONS",
+                "Access-Control-Allow-Headers": "*",
+                "Access-Control-Allow-Credentials": "true"
+            }
+        )
         
     except requests.exceptions.RequestException as e:
         print(f"Network error: {str(e)}")
-        return {
-            "status": "error",
-            "message": "Failed to fetch data from Google Sheets",
-            "details": str(e),
-            "timestamp": datetime.now(pytz.UTC).isoformat()
-        }
+        return JSONResponse(
+            status_code=503,
+            content={
+                "status": "error",
+                "message": "Failed to fetch data from Google Sheets",
+                "details": str(e),
+                "timestamp": datetime.now(pytz.UTC).isoformat()
+            },
+            headers={
+                "Access-Control-Allow-Origin": "https://real-time-data-visualization-dashboard-seven.vercel.app",
+                "Access-Control-Allow-Methods": "GET, OPTIONS",
+                "Access-Control-Allow-Headers": "*",
+                "Access-Control-Allow-Credentials": "true"
+            }
+        )
     except Exception as e:
         print(f"Error processing data: {str(e)}")
-        return {
-            "status": "error",
-            "message": "Internal server error",
-            "details": str(e),
-            "timestamp": datetime.now(pytz.UTC).isoformat()
-        }
+        return JSONResponse(
+            status_code=500,
+            content={
+                "status": "error",
+                "message": "Internal server error",
+                "details": str(e),
+                "timestamp": datetime.now(pytz.UTC).isoformat()
+            },
+            headers={
+                "Access-Control-Allow-Origin": "https://real-time-data-visualization-dashboard-seven.vercel.app",
+                "Access-Control-Allow-Methods": "GET, OPTIONS",
+                "Access-Control-Allow-Headers": "*",
+                "Access-Control-Allow-Credentials": "true"
+            }
+        )
 
 @app.get("/health")
 async def health_check():
-    return {"status": "healthy"}
+    return JSONResponse(
+        content={"status": "healthy"},
+        headers={
+            "Access-Control-Allow-Origin": "https://real-time-data-visualization-dashboard-seven.vercel.app",
+            "Access-Control-Allow-Methods": "GET, OPTIONS",
+            "Access-Control-Allow-Headers": "*",
+            "Access-Control-Allow-Credentials": "true"
+        }
+    )
 
 if __name__ == "__main__":
     import uvicorn

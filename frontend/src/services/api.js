@@ -8,8 +8,10 @@ const fetchWithRetry = async (url, options = {}, retryCount = 0) => {
             ...options,
             headers: {
                 'Content-Type': 'application/json',
+                'Accept': 'application/json',
                 ...options.headers,
             },
+            credentials: 'include',
         });
 
         if (!response.ok) {
@@ -27,7 +29,7 @@ const fetchWithRetry = async (url, options = {}, retryCount = 0) => {
     } catch (error) {
         if (retryCount < config.retryAttempts) {
             console.log(`Retry attempt ${retryCount + 1} of ${config.retryAttempts}`);
-            await delay(config.retryDelay);
+            await delay(config.retryDelay * (retryCount + 1)); // Exponential backoff
             return fetchWithRetry(url, options, retryCount + 1);
         }
         throw error;
@@ -41,5 +43,15 @@ export const fetchDashboardData = async () => {
     } catch (error) {
         console.error('Error fetching dashboard data:', error);
         throw new Error(error.message || 'Failed to fetch dashboard data. Please try again later.');
+    }
+};
+
+export const checkHealth = async () => {
+    try {
+        const response = await fetchWithRetry(`${config.apiUrl}/health`);
+        return response.status === 'healthy';
+    } catch (error) {
+        console.error('Health check failed:', error);
+        return false;
     }
 }; 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { fetchDashboardData } from '../services/api';
+import { fetchDashboardData, checkHealth } from '../services/api';
 import config from '../config';
 import './Dashboard.css';
 
@@ -7,12 +7,22 @@ const Dashboard = () => {
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [isHealthy, setIsHealthy] = useState(true);
 
     useEffect(() => {
         const fetchData = async () => {
             try {
                 setLoading(true);
                 setError(null);
+                
+                // Check API health first
+                const healthStatus = await checkHealth();
+                setIsHealthy(healthStatus);
+                
+                if (!healthStatus) {
+                    throw new Error('API is not responding. Please try again later.');
+                }
+
                 const result = await fetchDashboardData();
                 setData(result);
             } catch (err) {
@@ -38,7 +48,12 @@ const Dashboard = () => {
     };
 
     if (loading) {
-        return <div className="loading">Loading dashboard data...</div>;
+        return (
+            <div className="loading">
+                <div className="loading-spinner"></div>
+                <p>Loading dashboard data...</p>
+            </div>
+        );
     }
 
     if (error) {
@@ -53,7 +68,12 @@ const Dashboard = () => {
 
     return (
         <div className="dashboard">
-            <h1>Real-Time Dashboard</h1>
+            <div className="dashboard-header">
+                <h1>Real-Time Dashboard</h1>
+                <div className={`health-status ${isHealthy ? 'healthy' : 'unhealthy'}`}>
+                    {isHealthy ? 'API Status: Healthy' : 'API Status: Unhealthy'}
+                </div>
+            </div>
             <div className="dashboard-grid">
                 <div className="data-display">
                     <h2>Latest Data</h2>
