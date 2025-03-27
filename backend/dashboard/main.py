@@ -19,17 +19,20 @@ app = FastAPI(title="Real-Time Dashboard API")
 # Configure CORS with specific origins
 origins = [
     "https://real-time-data-visualization-dashboard.vercel.app",
+    "https://real-time-data-visualization-dashboard-seven.vercel.app",  # Add this
     "http://localhost:3000"  # For local development
 ]
 
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"],  # Allow all origins
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
     expose_headers=["*"]
 )
+
 
 # Google Sheets setup
 SPREADSHEET_ID = os.getenv('SPREADSHEET_ID')
